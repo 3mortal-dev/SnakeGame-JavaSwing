@@ -6,7 +6,7 @@ public class GridRenderer {
   static int COLS = 10;
   static int CELL_SIZE = 50;
 
-  public void draw(Graphics g, int width, int height, Snake snake) {
+  public void draw(Graphics g, int width, int height, Snake snake, Food food) {
     Graphics2D g2d = (Graphics2D) g;
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     int X = (width - COLS * CELL_SIZE) / 2;
@@ -34,6 +34,7 @@ public class GridRenderer {
         drawBead(g2d, beadX, beadY);
       }
     }
+    drawFood(g2d, food, X, Y);
   }
 
   private static int getX(Snake snake, int i) {
@@ -72,5 +73,11 @@ public class GridRenderer {
     // shine
     g2d.setColor(new Color(255, 255, 255, 100));
     g2d.fillOval(x + 10, y + 8, 10, 7);
+  }
+
+  private void drawFood(Graphics2D g2d, Food food, int startX, int startY) {
+    int x = startX + food.getPosition().x * CELL_SIZE;
+    int y = startY + food.getPosition().y * CELL_SIZE;
+    g2d.drawImage(food.getImg(), x, y, CELL_SIZE, CELL_SIZE, null);
   }
 }

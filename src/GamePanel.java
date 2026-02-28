@@ -8,6 +8,7 @@ public class GamePanel extends JPanel {
 
   private GridRenderer gridRenderer = new GridRenderer();
   private Snake snake = new Snake();
+  private Food food = new Food(snake.getBeads());
 
   public GamePanel() {
     this.setFocusable(true);
@@ -43,6 +44,6 @@ public class GamePanel extends JPanel {
     // Not (0,0) -> (width,height) => diagonal
     g2d.setPaint(new GradientPaint(0, 0, top, 0, this.getHeight(), bottom));
     g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
-    gridRenderer.draw(g2d, getWidth(), getHeight(), snake);
+    gridRenderer.draw(g2d, getWidth(), getHeight(), snake, food);
   }
 }
