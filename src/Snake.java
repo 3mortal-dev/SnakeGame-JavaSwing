@@ -9,6 +9,9 @@ public class Snake {
   }
 
   private Direction currentDirection = Direction.DOWN;
+  private Direction buffer = Direction.DOWN; // Prevents delays for opposite direction movments
+  private boolean directionChanged = false; // lock flag
+
   private int startCol = GridRenderer.COLS / 2;
   private int startRow = GridRenderer.ROWS / 2;
 
@@ -24,24 +27,27 @@ public class Snake {
   }
 
   public void changeDirection(Direction d) {
-    Direction current = this.currentDirection;
     // Ignore if I'm in the same direction
-    if (current == d) {
+    if (this.directionChanged) return;
+    if (this.buffer == d) {
       return;
     }
 
     // If I'm up I can't go down
-    else if ((current == Direction.UP || current == Direction.DOWN) && (d == Direction.UP || d == Direction.DOWN)) {
+    else if ((this.buffer == Direction.UP || this.buffer == Direction.DOWN) && (d == Direction.UP || d == Direction.DOWN)) {
       return;
     }
     // If I'm left I can't go right
-    else if ((current == Direction.LEFT || current == Direction.RIGHT) && (d == Direction.LEFT || d == Direction.RIGHT)) {
+    else if ((this.buffer == Direction.LEFT || this.buffer == Direction.RIGHT) && (d == Direction.LEFT || d == Direction.RIGHT)) {
       return;
     }
-    this.currentDirection = d;
+    this.buffer = d;
+    this.directionChanged = true;
   }
 
   public void move() {
+    this.currentDirection = this.buffer;
+    this.directionChanged = false;
     Point next = getNextPoint();
     this.snakeList.addFirst(next);
     this.snakeList.removeLast();
@@ -49,7 +55,7 @@ public class Snake {
 
   private Point getNextPoint() {
     Point head = this.snakeList.getFirst();
-    switch (currentDirection) {
+    switch (this.currentDirection) {
       case UP -> {
         return new Point(head.x, head.y - 1);
       }
