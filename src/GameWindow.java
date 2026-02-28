@@ -5,7 +5,7 @@ import java.net.URL;
 public class GameWindow extends JFrame {
   public GameWindow() {
     setTitle("Ramadan Snake");
-    setSize(600, 600);
+    setSize(800, 600);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setResizable(false);
     setLocationRelativeTo(null);
@@ -35,6 +35,7 @@ public class GameWindow extends JFrame {
       System.err.println("Icon not found!");
     }
 
+    this.add(new GamePanel());
     setVisible(true); // always last!
   }
 }
