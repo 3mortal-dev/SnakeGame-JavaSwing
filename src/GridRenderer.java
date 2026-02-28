@@ -7,29 +7,31 @@ public class GridRenderer {
   static int CELL_SIZE = 50;
 
   public void draw(Graphics g, int width, int height, Snake snake) {
+    Graphics2D g2d = (Graphics2D) g;
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     int X = (width - COLS * CELL_SIZE) / 2;
     int Y = (height - ROWS * CELL_SIZE) / 2;
 
-    g.setColor(new Color(255, 255, 255, 40)); // Grid Color
+    g2d.setColor(new Color(255, 255, 255, 40)); // Grid Color
 
     // horizontal lines
     for (int row = 0; row <= ROWS; row++) {
       int y = Y + row * CELL_SIZE;
-      g.drawLine(X, y, X + COLS * CELL_SIZE, y);
+      g2d.drawLine(X, y, X + COLS * CELL_SIZE, y);
     }
 
     // vertical lines
     for (int col = 0; col <= COLS; col++) {
       int x = X + col * CELL_SIZE;
-      g.drawLine(x, Y, x, Y + ROWS * CELL_SIZE);
+      g2d.drawLine(x, Y, x, Y + ROWS * CELL_SIZE);
     }
     for (int i = 0; i < snake.getBeads().size(); i++) {
       int beadX = X + getX(snake, i) * CELL_SIZE;
       int beadY = Y + getY(snake, i) * CELL_SIZE;
       if (i == 0) {
-        drawHead((Graphics2D) g, beadX, beadY);
+        drawHead(g2d, beadX, beadY);
       } else {
-        drawBead((Graphics2D) g, beadX, beadY);
+        drawBead(g2d, beadX, beadY);
       }
     }
   }

@@ -1,5 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 public class GamePanel extends JPanel {
 
@@ -7,7 +10,21 @@ public class GamePanel extends JPanel {
   private Snake snake = new Snake();
 
   public GamePanel() {
-    Timer timer = new Timer(1000, _ -> {
+    this.setFocusable(true);
+    this.requestFocusInWindow();
+    this.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        switch (e.getKeyCode()) {
+          case KeyEvent.VK_UP, KeyEvent.VK_W -> snake.changeDirection(Snake.Direction.UP);
+          case KeyEvent.VK_DOWN, KeyEvent.VK_S -> snake.changeDirection(Snake.Direction.DOWN);
+          case KeyEvent.VK_LEFT, KeyEvent.VK_A -> snake.changeDirection(Snake.Direction.LEFT);
+          case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> snake.changeDirection(Snake.Direction.RIGHT);
+        }
+      }
+
+    });
+    Timer timer = new Timer(150, _ -> {
       snake.move();
       repaint();
     });

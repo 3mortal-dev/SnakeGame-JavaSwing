@@ -4,13 +4,13 @@ import java.util.ArrayList;
 public class Snake {
   private ArrayList<Point> snakeList = new ArrayList<>();
 
-  private enum Direction {
+  public enum Direction {
     UP, DOWN, LEFT, RIGHT;
   }
 
-  public Direction currentDirection = Direction.DOWN;
-  int startCol = GridRenderer.COLS / 2;
-  int startRow = GridRenderer.ROWS / 2;
+  private Direction currentDirection = Direction.DOWN;
+  private int startCol = GridRenderer.COLS / 2;
+  private int startRow = GridRenderer.ROWS / 2;
 
   public Snake() {
     this.snakeList.add(new Point(startCol, startRow));
