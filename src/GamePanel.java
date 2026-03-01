@@ -56,7 +56,7 @@ public class GamePanel extends JPanel {
       }
     });
 
-    masterTimer = new Timer(16, _ -> {
+    masterTimer = new Timer(16, e -> {
       if (state == GameState.PLAYING) {
         gameTickCounter++;
         if (gameTickCounter >= GAME_TICK_RATE) {
