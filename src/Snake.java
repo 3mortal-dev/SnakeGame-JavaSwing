@@ -45,14 +45,6 @@ public class Snake {
     this.directionChanged = true;
   }
 
-  public void move() {
-    this.currentDirection = this.buffer;
-    this.directionChanged = false;
-    Point next = getNextPoint();
-    this.snakeList.addFirst(next);
-    this.snakeList.removeLast();
-  }
-
   private Point getNextPoint() {
     Point head = this.snakeList.getFirst();
     switch (this.currentDirection) {
@@ -72,4 +64,29 @@ public class Snake {
     return head;
   }
 
+  public Point getHead() {
+    return snakeList.getFirst();
+  }
+
+  public void grow() {
+    this.currentDirection = this.buffer;
+    this.directionChanged = false;
+    Point next = getNextPoint();
+    this.snakeList.addFirst(next);
+  }
+
+  public void move() {
+    this.grow();
+    this.snakeList.removeLast();
+  }
+
+  public boolean isOutOfBounds() {
+    Point head = this.getHead();
+    return head.x < 0 || head.x >= GridRenderer.COLS ||
+            head.y < 0 || head.y >= GridRenderer.ROWS;
+  }
+
+  public boolean isCollidingWithSelf() {
+    return this.snakeList.subList(1, snakeList.size()).contains(snakeList.getFirst());
+  }
 }
