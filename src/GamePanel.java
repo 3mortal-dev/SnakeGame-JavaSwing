@@ -9,7 +9,10 @@ public class GamePanel extends JPanel {
   private Snake snake = new Snake();
   private Food food = new Food(snake.getBeads());
   private Timer timer;
-  private boolean isGameOver = false;
+
+  public enum GameState {MENU, PLAYING, GAME_OVER}
+
+  private GameState state = GameState.MENU;
   private int score = 0;
 
   public GamePanel() {
@@ -24,7 +27,10 @@ public class GamePanel extends JPanel {
           case KeyEvent.VK_LEFT, KeyEvent.VK_A -> snake.changeDirection(Snake.Direction.LEFT);
           case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> snake.changeDirection(Snake.Direction.RIGHT);
           case KeyEvent.VK_R -> {
-            if (isGameOver) GamePanel.this.resetGame();
+            if (state == GameState.GAME_OVER) GamePanel.this.resetGame();
+          }
+          case KeyEvent.VK_SPACE -> {
+            if (state == GameState.MENU) state = GameState.PLAYING;
           }
         }
       }
@@ -32,6 +38,7 @@ public class GamePanel extends JPanel {
 
     timer = new Timer(150, null);
     timer.addActionListener(_ -> {
+      if (state != GameState.PLAYING) return;
 
       if (snake.getHead().equals(food.getPosition())) {
         snake.grow();
@@ -41,7 +48,7 @@ public class GamePanel extends JPanel {
         snake.move();
       }
       if (snake.isCollidingWithSelf() || snake.isOutOfBounds()) {
-        this.isGameOver = true;
+        state = GameState.GAME_OVER;
         timer.stop();
       }
       repaint();
@@ -61,11 +68,14 @@ public class GamePanel extends JPanel {
     // Not (0,0) -> (width,height) => diagonal
     g2d.setPaint(new GradientPaint(0, 0, top, 0, this.getHeight(), bottom));
     g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
-    gridRenderer.draw(g2d, getWidth(), getHeight(), snake, food);
-    g2d.setColor(Color.WHITE);
-    g2d.setFont(new Font("Arial", Font.BOLD, 20));
-    g2d.drawString("Dates Collected: " + score, 315, 30);
-    if (this.isGameOver) drawGameOver(g2d);
+
+    if (state == GameState.MENU) {
+      drawMenu(g2d);                                    // only menu
+    } else {
+      gridRenderer.draw(g2d, getWidth(), getHeight(), snake, food); // grid + snake
+      drawScore(g2d);                                   // score
+      if (state == GameState.GAME_OVER) drawGameOver(g2d); // overlay
+    }
   }
 
   private void drawGameOver(Graphics2D g2d) {
@@ -99,7 +109,45 @@ public class GamePanel extends JPanel {
     snake = new Snake();
     food = new Food(snake.getBeads());
     score = 0;
-    isGameOver = false;
+    state = GameState.PLAYING;
     timer.start();
+  }
+
+  private void drawMenu(Graphics2D g2d) {
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    FontMetrics fm;
+
+    // Title — "Ramadan Snake"
+    g2d.setFont(new Font("Arial", Font.BOLD, 52));
+    g2d.setColor(new Color(240, 200, 80)); // golden color
+    fm = g2d.getFontMetrics();
+    String title = "Ramadan Snake";
+    g2d.drawString(title, (getWidth() - fm.stringWidth(title)) / 2, getHeight() / 2 - 80);
+
+    // Subtitle — crescent moon and lantern emojis
+    g2d.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 36));
+    fm = g2d.getFontMetrics();
+    String emoji = "🌙 🏮 🌙";
+    g2d.drawString(emoji, (getWidth() - fm.stringWidth(emoji)) / 2, getHeight() / 2 - 20);
+
+    // Start hint
+    g2d.setFont(new Font("Arial", Font.PLAIN, 20));
+    g2d.setColor(new Color(200, 200, 200));
+    fm = g2d.getFontMetrics();
+    String start = "Press SPACE to Start";
+    g2d.drawString(start, (getWidth() - fm.stringWidth(start)) / 2, getHeight() / 2 + 40);
+
+    // Ramadan Kareem
+    g2d.setFont(new Font("Arial", Font.ITALIC, 16));
+    g2d.setColor(new Color(150, 150, 150));
+    fm = g2d.getFontMetrics();
+    String sub = "Ramadan Kareem ✨";
+    g2d.drawString(sub, (getWidth() - fm.stringWidth(sub)) / 2, getHeight() / 2 + 80);
+  }
+
+  private void drawScore(Graphics2D g2d) {
+    g2d.setColor(Color.WHITE);
+    g2d.setFont(new Font("Arial", Font.BOLD, 20));
+    g2d.drawString("Dates Collected: " + score, 315, 30);
   }
 }
