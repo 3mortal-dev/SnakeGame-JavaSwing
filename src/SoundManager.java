@@ -1,18 +1,24 @@
 import javax.sound.sampled.*;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.net.URL;
 
 public class SoundManager {
 
   public static void play(String filename) {
-    new Thread(() -> { // run on separate thread!
+    new Thread(() -> {
       try {
-        URL url = SoundManager.class.getResource("/sounds/" + filename);
-        if (url == null) return;
-        AudioInputStream audio = AudioSystem.getAudioInputStream(url);
+        InputStream is = SoundManager.class.getResourceAsStream("/sounds/" + filename);
+        if (is == null) {
+          System.err.println(filename + " not found!");
+          return;
+        }
+        AudioInputStream audio = AudioSystem.getAudioInputStream(
+                new BufferedInputStream(is)
+        );
         Clip clip = AudioSystem.getClip();
         clip.open(audio);
         clip.start();
-        // close after done
         clip.addLineListener(e -> {
           if (e.getType() == LineEvent.Type.STOP) clip.close();
         });
