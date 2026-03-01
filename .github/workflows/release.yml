@@ -1,34 +1,52 @@
-name: Build & Release
+name: Build Ramadan Snake Native Apps
 
 on:
-  push:
-    tags:
-      - 'v*'  # triggers on v1.0.0, v2.0.0, etc.
+  workflow_dispatch:
 
 jobs:
+  build-and-package:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
-  # ─────────────────────────────────────────
-  # 🍎 Mac → .dmg
-  # ─────────────────────────────────────────
-  build-mac:
-    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 1. Download Code from Repository
+        uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: 2. Setup Java 21 Environment
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
           distribution: 'temurin'
+          java-version: '21'
 
-      - name: Build JAR
+      - name: 3. Compile and Build JAR
         run: |
+          mkdir -p out/production
           mkdir -p out/artifacts
-          javac -d out/production -sourcepath src src/*.java
-          jar cfm out/artifacts/RamadanSnake.jar src/META-INF/MANIFEST.MF -C out/production .
-          cp -r resources/* out/artifacts/ 2>/dev/null || true
+          javac -encoding UTF-8 -d out/production src/*.java
+          cp -r resources/sounds out/production/
+          cp -r resources/t3b2a out/production/
+          cp resources/date.png out/production/
+          cp resources/Snake.png out/production/
+          cd out/production && jar cfm "../artifacts/RamadanSnake.jar" "../../resources/META-INF/MANIFEST.MF" .
 
-      - name: Create .icns icon
+      - name: 4A. Package Windows (.exe)
+        if: matrix.os == 'windows-latest'
+        run: |
+          jpackage --type exe --name RamadanSnake --input out/artifacts --main-jar RamadanSnake.jar --main-class Main --icon resources/Snakeico.ico --win-shortcut --win-menu
+
+      - name: 4B. Package Linux (.deb and .rpm)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm fakeroot
+          jpackage --type deb --name RamadanSnake --input out/artifacts --main-jar RamadanSnake.jar --main-class Main
+          jpackage --type rpm --name RamadanSnake --input out/artifacts --main-jar RamadanSnake.jar --main-class Main
+
+      - name: 4C. Package Mac (.dmg)
+        if: matrix.os == 'macos-latest'
         run: |
           mkdir -p resources/Snake.iconset
           sips -z 16 16     resources/Snake.png --out resources/Snake.iconset/icon_16x16.png
@@ -37,129 +55,14 @@ jobs:
           sips -z 256 256   resources/Snake.png --out resources/Snake.iconset/icon_256x256.png
           sips -z 512 512   resources/Snake.png --out resources/Snake.iconset/icon_512x512.png
           iconutil -c icns resources/Snake.iconset -o resources/Snake.icns
+          jpackage --type dmg --name RamadanSnake --input out/artifacts --main-jar RamadanSnake.jar --main-class Main --icon resources/Snake.icns
 
-      - name: Package .dmg
-        run: |
-          jpackage \
-            --input out/artifacts \
-            --name "RamadanSnake" \
-            --main-jar RamadanSnake.jar \
-            --main-class Main \
-            --type dmg \
-            --app-version ${{ github.ref_name }} \
-            --icon resources/Snake.icns \
-            --dest dist
-
-      - name: Upload .dmg
+      - name: 5. Upload Installers
         uses: actions/upload-artifact@v4
         with:
-          name: RamadanSnake-mac
-          path: dist/*.dmg
-
-  # ─────────────────────────────────────────
-  # 🪟 Windows → .exe
-  # ─────────────────────────────────────────
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Build JAR
-        run: |
-          mkdir -p out/artifacts
-          javac -d out/production -sourcepath src src/*.java
-          jar cfm out/artifacts/RamadanSnake.jar src/META-INF/MANIFEST.MF -C out/production .
-
-      - name: Package .exe
-        run: |
-          jpackage `
-            --input out/artifacts `
-            --name "RamadanSnake" `
-            --main-jar RamadanSnake.jar `
-            --main-class Main `
-            --type exe `
-            --app-version ${{ github.ref_name }} `
-            --icon resources/Snakeico.ico `
-            --dest dist
-
-      - name: Upload .exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: RamadanSnake-windows
-          path: dist/*.exe
-
-  # ─────────────────────────────────────────
-  # 🐧 Linux → .deb
-  # ─────────────────────────────────────────
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Build JAR
-        run: |
-          mkdir -p out/artifacts
-          javac -d out/production -sourcepath src src/*.java
-          jar cfm out/artifacts/RamadanSnake.jar src/META-INF/MANIFEST.MF -C out/production .
-
-      - name: Package .deb
-        run: |
-          jpackage \
-            --input out/artifacts \
-            --name "RamadanSnake" \
-            --main-jar RamadanSnake.jar \
-            --main-class Main \
-            --type deb \
-            --app-version ${{ github.ref_name }} \
-            --dest dist
-
-      - name: Upload .deb
-        uses: actions/upload-artifact@v4
-        with:
-          name: RamadanSnake-linux
-          path: dist/*.deb
-
-  # ─────────────────────────────────────────
-  # 📦 Create GitHub Release with all files
-  # ─────────────────────────────────────────
-  release:
-    needs: [build-mac, build-windows, build-linux]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            RamadanSnake-mac/*.dmg
-            RamadanSnake-windows/*.exe
-            RamadanSnake-linux/*.deb
-          body: |
-            ## 🌙 Ramadan Snake ${{ github.ref_name }}
-
-            ### Downloads
-            - 🍎 **Mac** → `.dmg`
-            - 🪟 **Windows** → `.exe`  
-            - 🐧 **Linux** → `.deb`
-            - ☕ **All platforms** → `.jar` (requires Java 17+)
-
-            ### How to Play
-            - Arrow keys or WASD to move
-            - Collect 15 dates to win! 🌴
-            - Avoid walls and yourself
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: RamadanSnake-${{ matrix.os }}
+          path: |
+            *.exe
+            *.deb
+            *.rpm
+            *.dmg
