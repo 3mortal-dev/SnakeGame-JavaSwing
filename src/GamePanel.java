@@ -79,7 +79,7 @@ public class GamePanel extends JPanel {
       food.respawn(snake.getBeads());
       score++;
       SoundManager.play("eat.wav");
-      if (score >= 20) {
+      if (score >= 15) {
         state = GameState.WIN;
         SoundManager.play("win.wav");
         startWinAnimation();
